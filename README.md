@@ -1,0 +1,2 @@
+# delocalize
+remove .localized file
