@@ -2,6 +2,7 @@ package delocalize
 
 import (
 	"errors"
+	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -30,6 +31,32 @@ func Delocalize(path string) error {
 	return nil
 }
 
+// IsLocalizedFile check file name
+func IsLocalizedFile(path string) bool {
+	if strings.HasSuffix(path, LocalizedFilename) {
+		return true
+	}
+
+	return false
+}
+
+// directories from path
+func directories(path string) ([]os.FileInfo, error) {
+	list, err := ioutil.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	dl := []os.FileInfo{}
+	for _, fi := range list {
+		if fi.IsDir() {
+			dl = append(dl, fi)
+		}
+	}
+
+	return dl, nil
+}
+
 // delete path name file
 func delete(path string) error {
 	if !IsLocalizedFile(path) {
@@ -41,12 +68,4 @@ func delete(path string) error {
 	}
 
 	return nil
-}
-
-func IsLocalizedFile(path string) bool {
-	if strings.HasSuffix(path, LocalizedFilename) {
-		return true
-	}
-
-	return false
 }
