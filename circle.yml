@@ -1,0 +1,37 @@
+machine:
+  environment:
+    GO15VENDOREXPERIMENT: 1
+    GOROOT: "/home/ubuntu/go"
+    GOPATH: "/home/ubuntu/gopath"
+    PATH: "/home/ubuntu/go/bin:/home/ubuntu/gopath/bin:$PATH"
+    REPOSITORY: "github.com/ushios/delocalize"
+    GOVERSION: 1.7.1
+dependencies:
+  cache_directories:
+    - "/home/ubuntu/.go"
+  pre:
+    - |
+      cd /home/ubuntu
+      if [[ ! -e /home/ubuntu/.go/$GOVERSION/bin/go ]]; then
+        curl https://storage.googleapis.com/golang/go$GOVERSION.linux-amd64.tar.gz | tar -xz
+        mkdir -p ~/.go
+        cp -rp ~/go ~/.go/$GOVERSION
+      else
+        cp -rp ~/.go/$GOVERSION ~/go
+      fi
+    - go version
+    - go get -u github.com/jstemmer/go-junit-report
+    - sudo add-apt-repository ppa:masterminds/glide -y
+    - sudo apt-get update
+    - sudo apt-get install glide -y
+test:
+  pre:
+    - echo $GOPATH $PATH
+    - go get -u $REPOSITORY/...
+    - |
+      cd /home/ubuntu/gopath/src/$REPOSITORY
+      glide install
+  override:
+    - |
+      cd /home/ubuntu/gopath/src/$REPOSITORY
+      go test $(glide nv)
