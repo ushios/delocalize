@@ -3,7 +3,6 @@ package delocalize
 import (
 	"log"
 	"os"
-	"sync"
 )
 
 // @see: https://gist.github.com/kaneshin/69bd13c7b57ba8bac84fb4de0098b5fc
@@ -14,7 +13,6 @@ type (
 		pool    chan *deleteWorker
 		queue   chan interface{}
 		workers []*deleteWorker
-		wg      sync.WaitGroup
 		quit    chan struct{}
 	}
 
@@ -48,13 +46,7 @@ func NewDeleteDispatcher(maxQueues, maxWorkers int) *DeleteDispatcher {
 
 // Add value to queue for worker
 func (d *DeleteDispatcher) Add(v interface{}) {
-	d.wg.Add(1)
 	d.queue <- v
-}
-
-// Wait the wait group
-func (d *DeleteDispatcher) Wait() {
-	d.wg.Wait()
 }
 
 // Start dispather
@@ -90,9 +82,6 @@ func (w *deleteWorker) start() {
 						log.Print(err)
 					}
 				}
-
-				w.dispatcher.wg.Done()
-
 			case <-w.quit:
 				return
 			}
