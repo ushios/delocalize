@@ -1,7 +1,7 @@
 package delocalize
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"sync"
 )
@@ -86,7 +86,9 @@ func (w *deleteWorker) start() {
 			select {
 			case v := <-w.data:
 				if str, ok := v.(string); ok {
-					fmt.Println(str)
+					if err := delete(str); err != nil {
+						log.Print(err)
+					}
 				}
 
 				w.dispatcher.wg.Done()
