@@ -56,16 +56,3 @@ func directories(path string) ([]os.FileInfo, error) {
 
 	return dl, nil
 }
-
-// delete path name file
-func delete(path string) error {
-	if !IsLocalizedFile(path) {
-		return ErrThisFileIsNotLocalizedFile
-	}
-
-	if err := os.Remove(path); err != nil {
-		return err
-	}
-
-	return nil
-}
