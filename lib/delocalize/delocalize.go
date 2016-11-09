@@ -49,8 +49,10 @@ func directories(path string) ([]os.FileInfo, error) {
 
 	dl := []os.FileInfo{}
 	for _, fi := range list {
-		if fi.IsDir() {
-			dl = append(dl, fi)
+		if fi.Mode() != os.ModeSymlink {
+			if fi.IsDir() {
+				dl = append(dl, fi)
+			}
 		}
 	}
 

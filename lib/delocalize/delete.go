@@ -11,14 +11,14 @@ type (
 	// DeleteDispatcher management worker
 	DeleteDispatcher struct {
 		pool    chan *deleteWorker
-		queue   chan interface{}
+		queue   chan string
 		workers []*deleteWorker
 		quit    chan struct{}
 	}
 
 	deleteWorker struct {
 		dispatcher *DeleteDispatcher
-		data       chan interface{} // 受け取ったメッセージの受信先
+		data       chan string
 		quit       chan struct{}
 	}
 )
@@ -27,7 +27,7 @@ type (
 func NewDeleteDispatcher(maxQueues, maxWorkers int) *DeleteDispatcher {
 	d := &DeleteDispatcher{
 		pool:  make(chan *deleteWorker, maxWorkers),
-		queue: make(chan interface{}, maxQueues),
+		queue: make(chan string, maxQueues),
 		quit:  make(chan struct{}),
 	}
 
@@ -36,7 +36,7 @@ func NewDeleteDispatcher(maxQueues, maxWorkers int) *DeleteDispatcher {
 	for i := 0; i < cap(d.pool); i++ {
 		w := deleteWorker{
 			dispatcher: d,
-			data:       make(chan interface{}),
+			data:       make(chan string),
 			quit:       make(chan struct{}),
 		}
 		d.workers[i] = &w
@@ -45,8 +45,8 @@ func NewDeleteDispatcher(maxQueues, maxWorkers int) *DeleteDispatcher {
 }
 
 // Add value to queue for worker
-func (d *DeleteDispatcher) Add(v interface{}) {
-	d.queue <- v
+func (d *DeleteDispatcher) Add(path string) {
+	d.queue <- path
 }
 
 // Start dispather
@@ -76,11 +76,10 @@ func (w *deleteWorker) start() {
 			w.dispatcher.pool <- w
 
 			select {
-			case v := <-w.data:
-				if str, ok := v.(string); ok {
-					if err := delete(str); err != nil {
-						log.Print(err)
-					}
+			case path := <-w.data:
+				err := delete(path)
+				if err != nil {
+					log.Print(err)
 				}
 			case <-w.quit:
 				return
