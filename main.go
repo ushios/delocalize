@@ -13,7 +13,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	dd := delocalize.NewDirectoryDispatcher(10, 2)
+	dd := delocalize.NewDirectoryDispatcher(1000, 200)
 
 	dd.Add(wd)
 

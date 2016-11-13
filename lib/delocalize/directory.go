@@ -1,7 +1,6 @@
 package delocalize
 
 import (
-	"fmt"
 	"log"
 	"path/filepath"
 	"sync"
@@ -66,7 +65,6 @@ func (d *DirectoryDispatcher) Start() {
 		for {
 			select {
 			case v := <-d.queue:
-				fmt.Println("queue:", v)
 				worker := <-d.pool
 				worker.data <- v
 			case <-d.quit:
@@ -83,16 +81,14 @@ func (w *directoryWorker) start() {
 
 			select {
 			case path := <-w.data:
-				fmt.Println("data:", path)
 				dl, err := directories(path)
-				fmt.Println(dl)
 				if err != nil {
 					panic(err)
 				}
 
 				for _, d := range dl {
 					fullpath := filepath.Join(path, d.Name())
-					log.Println(fullpath)
+					log.Println("directory found: ", fullpath)
 					w.dispather.Add(fullpath)
 				}
 
