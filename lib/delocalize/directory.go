@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
+	"sync"
 )
 
 type (
@@ -12,6 +13,7 @@ type (
 		pool    chan *directoryWorker
 		queue   chan string
 		workers []*directoryWorker
+		wg      sync.WaitGroup
 		quit    chan struct{}
 	}
 
@@ -45,7 +47,13 @@ func NewDirectoryDispatcher(maxQueues, maxWorkers int) *DirectoryDispatcher {
 
 // Add value to queue
 func (d *DirectoryDispatcher) Add(path string) {
+	d.wg.Add(1)
 	d.queue <- path
+}
+
+// Wait for worker
+func (d *DirectoryDispatcher) Wait() {
+	d.wg.Wait()
 }
 
 // Start dispacher
@@ -58,6 +66,7 @@ func (d *DirectoryDispatcher) Start() {
 		for {
 			select {
 			case v := <-d.queue:
+				fmt.Println("queue:", v)
 				worker := <-d.pool
 				worker.data <- v
 			case <-d.quit:
@@ -74,6 +83,7 @@ func (w *directoryWorker) start() {
 
 			select {
 			case path := <-w.data:
+				fmt.Println("data:", path)
 				dl, err := directories(path)
 				fmt.Println(dl)
 				if err != nil {
@@ -86,6 +96,7 @@ func (w *directoryWorker) start() {
 					w.dispather.Add(fullpath)
 				}
 
+				w.dispather.wg.Done()
 			}
 		}
 	}()

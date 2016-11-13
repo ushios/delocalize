@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"path/filepath"
 
@@ -19,6 +18,5 @@ func main() {
 	dd.Add(wd)
 
 	dd.Start()
-
-	fmt.Println(wd)
+	dd.Wait()
 }
