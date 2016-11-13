@@ -1,7 +1,6 @@
 package delocalize
 
 import (
-	"log"
 	"path/filepath"
 	"sync"
 )
@@ -47,6 +46,10 @@ func NewDirectoryDispatcher(maxQueues, maxWorkers int) *DirectoryDispatcher {
 // Add value to queue
 func (d *DirectoryDispatcher) Add(path string) {
 	d.wg.Add(1)
+	go d.queueing(path)
+}
+
+func (d *DirectoryDispatcher) queueing(path string) {
 	d.queue <- path
 }
 
@@ -82,17 +85,18 @@ func (w *directoryWorker) start() {
 			select {
 			case path := <-w.data:
 				dl, err := directories(path)
+				defer w.dispather.wg.Done()
+
 				if err != nil {
 					panic(err)
 				}
 
 				for _, d := range dl {
 					fullpath := filepath.Join(path, d.Name())
-					log.Println("directory found: ", fullpath)
+					// log.Println("directory found: ", fullpath)
 					w.dispather.Add(fullpath)
 				}
 
-				w.dispather.wg.Done()
 			}
 		}
 	}()
