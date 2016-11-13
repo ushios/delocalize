@@ -1,6 +1,7 @@
 package delocalize
 
 import (
+	"fmt"
 	"log"
 	"os"
 )
@@ -21,6 +22,11 @@ type (
 		data       chan string
 		quit       chan struct{}
 	}
+)
+
+var (
+	// DryRun will not delete files
+	DryRun = true
 )
 
 // NewDeleteDispatcher .
@@ -77,9 +83,13 @@ func (w *deleteWorker) start() {
 
 			select {
 			case path := <-w.data:
-				err := delete(path)
-				if err != nil {
-					log.Print(err)
+				if DryRun {
+					fmt.Println(path)
+				} else {
+					err := delete(path)
+					if err != nil {
+						log.Print(err)
+					}
 				}
 			case <-w.quit:
 				return

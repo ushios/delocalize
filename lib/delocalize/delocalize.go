@@ -17,20 +17,6 @@ var (
 	ErrThisFileIsNotLocalizedFile = errors.New("ErrThisFileIsNotLocalizedFile")
 )
 
-// Delocalize directory with searching
-func Delocalize(path string) error {
-	// list, err := ioutil.ReadDir(path)
-	// if err != nil {
-	// 	return err
-	// }
-	//
-	// for _, fi := range list {
-	//
-	// }
-
-	return nil
-}
-
 // IsLocalizedFile check file name
 func IsLocalizedFile(path string) bool {
 	if strings.HasSuffix(path, LocalizedFilename) {
