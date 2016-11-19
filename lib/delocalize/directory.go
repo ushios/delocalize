@@ -1,13 +1,21 @@
 package delocalize
 
 import (
+	"io/ioutil"
+	"log"
+	"os"
 	"path/filepath"
 	"sync"
 )
 
 type (
+	// ExecuteMode is DirectoryDispatcher mode
+	ExecuteMode uint8
+
 	// DirectoryDispatcher management workers
 	DirectoryDispatcher struct {
+		ExecuteMode
+
 		pool    chan *directoryWorker
 		queue   chan string
 		workers []*directoryWorker
@@ -20,6 +28,11 @@ type (
 		data      chan string
 		quit      chan struct{}
 	}
+)
+
+const (
+	ExecuteModeDebugPrint = iota
+	ExecuteModeDelete
 )
 
 // NewDirectoryDispatcher .
@@ -46,7 +59,7 @@ func NewDirectoryDispatcher(maxQueues, maxWorkers int) *DirectoryDispatcher {
 // Add value to queue
 func (d *DirectoryDispatcher) Add(path string) {
 	d.wg.Add(1)
-	go d.queueing(path)
+	d.queueing(path)
 }
 
 func (d *DirectoryDispatcher) queueing(path string) {
@@ -84,20 +97,40 @@ func (w *directoryWorker) start() {
 
 			select {
 			case path := <-w.data:
-				dl, err := directories(path)
-				defer w.dispather.wg.Done()
+				func() {
+					defer w.dispather.wg.Done()
 
-				if err != nil {
-					panic(err)
-				}
+					dl, err := directories(path)
+					if err != nil {
+						panic(err)
+					}
 
-				for _, d := range dl {
-					fullpath := filepath.Join(path, d.Name())
-					// log.Println("directory found: ", fullpath)
-					w.dispather.Add(fullpath)
-				}
-
+					for _, d := range dl {
+						fullpath := filepath.Join(path, d.Name())
+						log.Println("directory found: ", fullpath)
+						w.dispather.Add(fullpath)
+					}
+				}()
 			}
 		}
 	}()
+}
+
+// directories from path
+func directories(path string) ([]os.FileInfo, error) {
+	list, err := ioutil.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	dl := []os.FileInfo{}
+	for _, fi := range list {
+		if fi.Mode() != os.ModeSymlink {
+			if fi.IsDir() {
+				dl = append(dl, fi)
+			}
+		}
+	}
+
+	return dl, nil
 }
