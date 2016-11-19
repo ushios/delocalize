@@ -30,22 +30,29 @@ func main() {
 
 	log.Println("target:", d)
 
-	dd := delocalize.NewDirectoryDispatcher(
-		directoryDispatcherMode(delete),
-		DirectoryWorkerNum*5,
-		DirectoryWorkerNum,
+	deld := delocalize.NewDeleteDispatcher(
+		deleteMode(delete), 10, 5,
 	)
 
-	dd.Add(d)
+	dird := delocalize.NewDirectoryDispatcher(
+		DirectoryWorkerNum*5,
+		DirectoryWorkerNum,
+		deld,
+	)
 
-	dd.Start()
-	dd.Wait()
+	dird.Add(d)
+
+	dird.Start()
+	deld.Start()
+
+	dird.Wait()
+	deld.Wait()
 }
 
-func directoryDispatcherMode(delete bool) delocalize.ExecuteMode {
+func deleteMode(delete bool) delocalize.DeleteMode {
 	if delete {
-		return delocalize.ExecuteModeDelete
+		return delocalize.DeleteModeDelete
 	}
 
-	return delocalize.ExecuteModeDebugPrint
+	return delocalize.DeleteModeDebugPrint
 }

@@ -2,24 +2,21 @@ package delocalize
 
 import (
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"sync"
 )
 
 type (
-	// ExecuteMode is DirectoryDispatcher mode
-	ExecuteMode uint8
 
 	// DirectoryDispatcher management workers
 	DirectoryDispatcher struct {
-		mode    ExecuteMode
 		pool    chan *directoryWorker
 		queue   chan string
 		workers []*directoryWorker
 		wg      sync.WaitGroup
 		quit    chan struct{}
+		deleter FileDeleter
 	}
 
 	directoryWorker struct {
@@ -27,19 +24,19 @@ type (
 		data      chan string
 		quit      chan struct{}
 	}
-)
 
-const (
-	ExecuteModeDebugPrint = iota
-	ExecuteModeDelete
+	FileDeleter interface {
+		Add(string)
+	}
 )
 
 // NewDirectoryDispatcher .
-func NewDirectoryDispatcher(mode ExecuteMode, maxQueues, maxWorkers int) *DirectoryDispatcher {
+func NewDirectoryDispatcher(maxQueues, maxWorkers int, del FileDeleter) *DirectoryDispatcher {
 	d := &DirectoryDispatcher{
-		pool:  make(chan *directoryWorker, maxWorkers),
-		queue: make(chan string, maxQueues),
-		quit:  make(chan struct{}),
+		pool:    make(chan *directoryWorker, maxWorkers),
+		queue:   make(chan string, maxQueues),
+		quit:    make(chan struct{}),
+		deleter: del,
 	}
 
 	d.workers = make([]*directoryWorker, cap(d.pool))
@@ -99,37 +96,28 @@ func (w *directoryWorker) start() {
 				func() {
 					defer w.dispather.wg.Done()
 
-					dl, err := directories(path)
+					list, err := ioutil.ReadDir(path)
 					if err != nil {
 						panic(err)
 					}
 
-					for _, d := range dl {
-						fullpath := filepath.Join(path, d.Name())
-						log.Println("directory found: ", fullpath)
-						w.dispather.Add(fullpath)
+					for _, fi := range list {
+						if fi.Mode() == os.ModeSymlink {
+							continue
+						}
+
+						fullpath := filepath.Join(path, fi.Name())
+						if fi.IsDir() {
+							w.dispather.Add(fullpath)
+							continue
+						} else {
+							if IsLocalizedFile(fullpath) {
+								w.dispather.deleter.Add(fullpath)
+							}
+						}
 					}
 				}()
 			}
 		}
 	}()
-}
-
-// directories from path
-func directories(path string) ([]os.FileInfo, error) {
-	list, err := ioutil.ReadDir(path)
-	if err != nil {
-		return nil, err
-	}
-
-	dl := []os.FileInfo{}
-	for _, fi := range list {
-		if fi.Mode() != os.ModeSymlink {
-			if fi.IsDir() {
-				dl = append(dl, fi)
-			}
-		}
-	}
-
-	return dl, nil
 }

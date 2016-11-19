@@ -1,20 +1,25 @@
 package delocalize
 
 import (
-	"fmt"
 	"log"
 	"os"
+	"sync"
 )
 
 // @see: https://gist.github.com/kaneshin/69bd13c7b57ba8bac84fb4de0098b5fc
 
 type (
+	// DeleteMode is DirectoryDispatcher mode
+	DeleteMode uint8
+
 	// DeleteDispatcher management worker
 	DeleteDispatcher struct {
+		mode    DeleteMode
 		pool    chan *deleteWorker
 		queue   chan string
 		workers []*deleteWorker
 		quit    chan struct{}
+		wg      sync.WaitGroup
 	}
 
 	deleteWorker struct {
@@ -24,17 +29,18 @@ type (
 	}
 )
 
-var (
-	// DryRun will not delete files
-	DryRun = true
+const (
+	DeleteModeDebugPrint = iota
+	DeleteModeDelete
 )
 
 // NewDeleteDispatcher .
-func NewDeleteDispatcher(maxQueues, maxWorkers int) *DeleteDispatcher {
+func NewDeleteDispatcher(mode DeleteMode, maxQueues, maxWorkers int) *DeleteDispatcher {
 	d := &DeleteDispatcher{
 		pool:  make(chan *deleteWorker, maxWorkers),
 		queue: make(chan string, maxQueues),
 		quit:  make(chan struct{}),
+		mode:  mode,
 	}
 
 	// worker の初期化
@@ -52,7 +58,16 @@ func NewDeleteDispatcher(maxQueues, maxWorkers int) *DeleteDispatcher {
 
 // Add value to queue for worker
 func (d *DeleteDispatcher) Add(path string) {
+	d.wg.Add(1)
+	go d.queueing(path)
+}
+
+func (d *DeleteDispatcher) queueing(path string) {
 	d.queue <- path
+}
+
+func (d *DeleteDispatcher) Wait() {
+	d.wg.Wait()
 }
 
 // Start dispather
@@ -83,14 +98,19 @@ func (w *deleteWorker) start() {
 
 			select {
 			case path := <-w.data:
-				if DryRun {
-					fmt.Println(path)
-				} else {
-					err := delete(path)
-					if err != nil {
-						log.Print(err)
+				func() {
+					defer w.dispatcher.wg.Done()
+
+					switch w.dispatcher.mode {
+					case DeleteModeDebugPrint:
+						log.Println(path)
+					case DeleteModeDelete:
+						// err := delete(path)
+						// if err != nil {
+						// 	log.Print(err)
+						// }
 					}
-				}
+				}()
 			case <-w.quit:
 				return
 			}
