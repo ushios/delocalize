@@ -14,8 +14,7 @@ type (
 
 	// DirectoryDispatcher management workers
 	DirectoryDispatcher struct {
-		ExecuteMode
-
+		mode    ExecuteMode
 		pool    chan *directoryWorker
 		queue   chan string
 		workers []*directoryWorker
@@ -36,7 +35,7 @@ const (
 )
 
 // NewDirectoryDispatcher .
-func NewDirectoryDispatcher(maxQueues, maxWorkers int) *DirectoryDispatcher {
+func NewDirectoryDispatcher(mode ExecuteMode, maxQueues, maxWorkers int) *DirectoryDispatcher {
 	d := &DirectoryDispatcher{
 		pool:  make(chan *directoryWorker, maxWorkers),
 		queue: make(chan string, maxQueues),

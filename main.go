@@ -13,14 +13,14 @@ var (
 	DirectoryWorkerNum = 4
 
 	directory string
-	debug     bool
+	delete    bool
 )
 
 func main() {
 	flag.StringVar(&directory, "target", "./", "target directory")
 	flag.StringVar(&directory, "t", "./", "target directory")
-	flag.BoolVar(&debug, "debug", false, "not delete only print .localized files")
-	flag.BoolVar(&debug, "d", false, "not delete only print .localized files")
+	flag.BoolVar(&delete, "delete", false, "delete .localized filed")
+	flag.BoolVar(&delete, "d", false, "delete .localized filed")
 	flag.Parse()
 
 	d, err := filepath.Abs(directory)
@@ -31,18 +31,21 @@ func main() {
 	log.Println("target:", d)
 
 	dd := delocalize.NewDirectoryDispatcher(
+		directoryDispatcherMode(delete),
 		DirectoryWorkerNum*5,
 		DirectoryWorkerNum,
 	)
-
-	if debug {
-		dd.ExecuteMode = delocalize.ExecuteModeDebugPrint
-	} else {
-		dd.ExecuteMode = delocalize.ExecuteModeDelete
-	}
 
 	dd.Add(d)
 
 	dd.Start()
 	dd.Wait()
+}
+
+func directoryDispatcherMode(delete bool) delocalize.ExecuteMode {
+	if delete {
+		return delocalize.ExecuteModeDelete
+	}
+
+	return delocalize.ExecuteModeDebugPrint
 }
