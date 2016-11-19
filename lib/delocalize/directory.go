@@ -59,7 +59,7 @@ func NewDirectoryDispatcher(maxQueues, maxWorkers int) *DirectoryDispatcher {
 // Add value to queue
 func (d *DirectoryDispatcher) Add(path string) {
 	d.wg.Add(1)
-	d.queueing(path)
+	go d.queueing(path)
 }
 
 func (d *DirectoryDispatcher) queueing(path string) {
