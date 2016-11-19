@@ -28,8 +28,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Println("target:", d)
-
 	deld := delocalize.NewDeleteDispatcher(
 		deleteMode(delete), 10, 5,
 	)
