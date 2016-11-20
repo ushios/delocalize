@@ -25,7 +25,7 @@ $ delocalize -t ~/
 
 ### Delete localized files
 
-use `-d` option.
+using `-d` option.
 
 ``` bash
 $ delocalize -d -t ~/
