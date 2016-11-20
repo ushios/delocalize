@@ -32,7 +32,6 @@ dependencies:
     - sudo apt-get install glide -y
 test:
   pre:
-    - go get github.com/mattn/goveralls
     - |
       echo $MYGOPATH
       echo $GOPATH
@@ -47,8 +46,3 @@ test:
     - |
       cd $MYGOPATH/src/$REPOSITORY
       go test $(glide nv)
-    - |
-      cd $MYGOPATH/src/$REPOSITORY
-      go test -v -cover -race -coverprofile=/home/ubuntu/coverage.out
-  post:
-    - $MYGOPATH/bin/goveralls -coverprofile=/home/ubuntu/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
