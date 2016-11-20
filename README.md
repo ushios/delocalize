@@ -1,5 +1,8 @@
 delocalize
 ==========
+[![Build Status](https://travis-ci.org/ushios/delocalize.svg?branch=master)](https://travis-ci.org/ushios/delocalize)
+[![Coverage Status](https://coveralls.io/repos/ushios/delocalize/badge.svg?branch=master&service=github)](https://coveralls.io/github/ushios/delocalize?branch=master)
+
 remove .localized file
 
 Installation
