@@ -1,5 +1,7 @@
 delocalize
 ==========
+[![CircleCI](https://circleci.com/gh/ushios/delocalize.svg?style=shield&circle-token=3e552577232060a1cbf22c98afc7885ec83cd558)](https://circleci.com/gh/ushios/delocalize)
+
 remove .localized file
 
 Installation
@@ -9,6 +11,10 @@ Installation
 $ go get github.com/ushios/delocalize
 ```
 
+Documentation
+-------------
+
+[![GoDoc](https://godoc.org/github.com/ushios/delocalize?status.svg)](https://godoc.org/github.com/ushios/delocalize)
 
 Usage
 -----
