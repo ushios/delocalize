@@ -1,0 +1,48 @@
+machine:
+  environment:
+    GO15VENDOREXPERIMENT: 1
+    GOROOT: "/home/ubuntu/go"
+    GOPATH: "/home/ubuntu/gopath"
+    MYGOPATH: "/home/ubuntu/gopath"
+    PATH: "/home/ubuntu/go/bin:/home/ubuntu/gopath/bin:$PATH"
+    REPONAME: "delocalize"
+    REPOSITORY_PARENT: "github.com/ushios"
+    REPOSITORY: "$REPOSITORY_PARENT/$REPONAME"
+    GOVERSION: 1.7.3
+database:
+  post:
+    - mysql -uroot -e "CREATE DATABASE ietty_go_lib"
+dependencies:
+  cache_directories:
+    - "/home/ubuntu/.go"
+  pre:
+    - |
+      cd /home/ubuntu
+      if [[ ! -e /home/ubuntu/.go/$GOVERSION/bin/go ]]; then
+        curl https://storage.googleapis.com/golang/go$GOVERSION.linux-amd64.tar.gz | tar -xz
+        mkdir -p ~/.go
+        cp -rp ~/go ~/.go/$GOVERSION
+      else
+        cp -rp ~/.go/$GOVERSION ~/go
+      fi
+    - go version
+    - go get -u github.com/jstemmer/go-junit-report
+    - sudo add-apt-repository ppa:masterminds/glide -y
+    - sudo apt-get update
+    - sudo apt-get install glide -y
+test:
+  pre:
+    - |
+      echo $MYGOPATH
+      echo $GOPATH
+      echo $PATH
+      echo $HOME
+    - mkdir -p $MYGOPATH/src/$REPOSITORY_PARENT
+    - mv --strip-trailing-slashes $HOME/$REPONAME $MYGOPATH/src/$REPOSITORY_PARENT
+    - |
+      cd $MYGOPATH/src/$REPOSITORY
+      glide install
+  override:
+    - |
+      cd $MYGOPATH/src/$REPOSITORY
+      go test $(glide nv)
