@@ -8,7 +8,7 @@ machine:
     REPONAME: "delocalize"
     REPOSITORY_PARENT: "github.com/ushios"
     REPOSITORY: "$REPOSITORY_PARENT/$REPONAME"
-    GOVERSION: 1.7.1
+    GOVERSION: 1.7.3
 database:
   post:
     - mysql -uroot -e "CREATE DATABASE ietty_go_lib"
