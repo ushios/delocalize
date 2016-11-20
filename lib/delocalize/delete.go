@@ -2,6 +2,7 @@ package delocalize
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"sync"
 )
@@ -105,10 +106,11 @@ func (w *deleteWorker) start() {
 					case DeleteModeDebugPrint:
 						fmt.Println(path)
 					case DeleteModeDelete:
-						// err := delete(path)
-						// if err != nil {
-						// 	log.Print(err)
-						// }
+						err := delete(path)
+						if err != nil {
+							log.Print(err)
+						}
+						fmt.Println("deleted:", path)
 					}
 				}()
 			case <-w.quit:
