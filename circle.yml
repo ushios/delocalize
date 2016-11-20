@@ -3,9 +3,15 @@ machine:
     GO15VENDOREXPERIMENT: 1
     GOROOT: "/home/ubuntu/go"
     GOPATH: "/home/ubuntu/gopath"
+    MYGOPATH: "/home/ubuntu/gopath"
     PATH: "/home/ubuntu/go/bin:/home/ubuntu/gopath/bin:$PATH"
-    REPOSITORY: "github.com/ushios/delocalize"
-    GOVERSION: 1.7.1
+    REPONAME: "delocalize"
+    REPOSITORY_PARENT: "github.com/ushios"
+    REPOSITORY: "$REPOSITORY_PARENT/$REPONAME"
+    GOVERSION: 1.7.3
+database:
+  post:
+    - mysql -uroot -e "CREATE DATABASE ietty_go_lib"
 dependencies:
   cache_directories:
     - "/home/ubuntu/.go"
@@ -26,12 +32,17 @@ dependencies:
     - sudo apt-get install glide -y
 test:
   pre:
-    - echo $GOPATH $PATH
-    - go get -u $REPOSITORY/...
     - |
-      cd /home/ubuntu/gopath/src/$REPOSITORY
+      echo $MYGOPATH
+      echo $GOPATH
+      echo $PATH
+      echo $HOME
+    - mkdir -p $MYGOPATH/src/$REPOSITORY_PARENT
+    - mv --strip-trailing-slashes $HOME/$REPONAME $MYGOPATH/src/$REPOSITORY_PARENT
+    - |
+      cd $MYGOPATH/src/$REPOSITORY
       glide install
   override:
     - |
-      cd /home/ubuntu/gopath/src/$REPOSITORY
+      cd $MYGOPATH/src/$REPOSITORY
       go test $(glide nv)
