@@ -45,4 +45,4 @@ test:
   override:
     - |
       cd $MYGOPATH/src/$REPOSITORY
-      go test $(glide nv)
+      go test $(glide nv) -race

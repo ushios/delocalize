@@ -11,6 +11,8 @@ import (
 var (
 	// DirectoryWorkerNum directory worker num
 	DirectoryWorkerNum = 4
+	// DeleteWorkerNum delete worker num
+	DeleteWorkerNum = 5
 
 	directory string
 	delete    bool
@@ -29,7 +31,9 @@ func main() {
 	}
 
 	deld := delocalize.NewDeleteDispatcher(
-		deleteMode(delete), 10, 5,
+		DeleteWorkerNum*2,
+		DeleteWorkerNum,
+		deleteMode(delete),
 	)
 
 	dird := delocalize.NewDirectoryDispatcher(
