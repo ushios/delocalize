@@ -36,7 +36,7 @@ const (
 )
 
 // NewDeleteDispatcher .
-func NewDeleteDispatcher(mode DeleteMode, maxQueues, maxWorkers int) *DeleteDispatcher {
+func NewDeleteDispatcher(maxQueues, maxWorkers int, mode DeleteMode) *DeleteDispatcher {
 	d := &DeleteDispatcher{
 		pool:  make(chan *deleteWorker, maxWorkers),
 		queue: make(chan string, maxQueues),
