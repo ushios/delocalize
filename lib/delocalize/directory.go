@@ -2,7 +2,6 @@ package delocalize
 
 import (
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"sync"
 )
@@ -102,9 +101,6 @@ func (w *directoryWorker) start() {
 					}
 
 					for _, fi := range list {
-						if fi.Mode() == os.ModeSymlink {
-							continue
-						}
 
 						fullpath := filepath.Join(path, fi.Name())
 						if fi.IsDir() {
